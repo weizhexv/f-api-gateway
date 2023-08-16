@@ -1,0 +1,32 @@
+app:
+  description: ${app.name} is API gateway.
+  name: F-API-Gateway
+
+logging:
+  level:
+    root: WARN
+    org.springframework.web: INFO
+    com.jkqj: TRACE
+    com.alibaba.nacos: ERROR
+server:
+  port: 20004
+  servlet:
+    encoding:
+      enabled: true
+      charset: UTF-8
+      force-response: true
+  undertow:
+    accesslog:
+      enabled: true
+#      dir: ${LOG_HOME}/access
+      dir: ${LOG_HOME:./logs}/access
+      pattern: '%a %h %l %u %t %I "%r" %s %b %D "%{i,Referer}" "%{i,User-Agent}" "%{i,platform}" "%{i,token}"'
+
+spring:
+  application:
+    name: api-gateway
+  banner:
+    location: classpath:banner.txt
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+

@@ -1,0 +1,342 @@
+server:
+  port: 7070
+
+dubbo:
+  application:
+    parameters:
+      unicast: false
+  protocol:
+    name: dubbo
+    port: -1
+    threadpool: fixed
+    threads: 30
+    iothreads: 3
+  metadata-report:
+    address: nacos://192.168.110.230:8848
+  registry:
+    protocol: nacos
+    address: 192.168.110.230:8848
+  #    protocol: multicast
+  #    address: 224.5.6.7:1234
+  scan:
+    base-packages: com.jkqj.base.gateway
+  provider:
+    group: ${spring.profiles.active}
+    filter: -generic,custom
+  consumer:
+    group: ${spring.profiles.active}
+    layer: gw
+    check: false
+    timeout: 30000
+    retries: 1
+    async: false
+    actives: 0
+
+nacos:
+  config:
+    server-addr: 192.168.110.230:8848
+
+jkqj:
+  rpc:
+    client:
+      user: http://192.168.110.230:9090
+      authorization: http://192.168.110.230:9090
+      biz-user: http://192.168.110.230:8080
+  gateway:
+    nacos:
+      group: ${spring.profiles.active}
+      globalId: f-api-gateway-router-properties.yaml
+      routeTriggerId: DUBBO_GATEWAY_TRIGGER.TEXT
+      routeIdSuffix: _gw_config.yaml
+    passHeaders:
+      - device-id
+      - hardware
+      - os
+      - os-version
+      - location
+      - ip
+      - network-type
+      - timestamp
+      - user-agent
+      - resolution
+      - platform
+      - app-key
+      - app-version
+      - app-vsn
+      - trace-id
+      - token
+    rules:
+      - path: /qj/v1/auth/token/login/mobile
+        methods:
+          - post
+        description: login by mobile
+        login: false
+        passHeaders:
+          - paltform
+          - os
+        traceHeader: trace-id
+        proxyPass: "http://uc:/qj/v1/auth/token/login/mobile"
+
+      - path: /demo/ping
+        methods:
+          - get
+          - post
+        login: false
+        traceHeader: trace-id
+        proxyPass: dubbo://:com.jkqj.base.gateway.invoker.demo.DemoService:ping:(java.lang.String name, int age, boolean isMale, [Ljava.lang.String; hobbies):1.0.0
+
+      - path: /demo/ping1
+        methods:
+          - get
+          - post
+        login: false
+        proxyPass: dubbo://:com.jkqj.base.gateway.invoker.demo.DemoService:ping1:(com.jkqj.base.gateway.invoker.demo.PingRequest):1.0.0
+
+      - path: /wt/v1/interview/getCommentList
+        methods:
+          - get
+          - post
+        login: false
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewCommentDubboService:getCommentList:(com.jkqj.zemu.rpc.server.model.interview.GetCommentListRequest):1.0.0"
+
+      - path: /dubbo/comment/test
+        methods:
+          - get
+          - post
+        login: false
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewCommentDubboService:dubboCommentTest:(java.lang.String comment):1.0.0"
+
+      - path: /dubbo/top-tags
+        methods:
+          - get
+        login: false
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.CommonDubboService:getTopTags::1.0.0"
+
+      - path: /wt/v1/interview/unanswer/list
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewDubboService:searchUnAnswered:(com.jkqj.zemu.rpc.server.model.UnAnswerSearchRequest):1.0.0"
+
+      - path: /wt/v1/interview/answer/list
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewDubboService:searchAnswered:(com.jkqj.zemu.rpc.server.model.SearchRequest):1.0.0"
+
+      - path: /wt/v1/interview/cancelled/list
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewDubboService:searchCancelled:(com.jkqj.zemu.rpc.server.model.SearchRequest):1.0.0"
+
+      - path: /wt/v1/interview/auditfailed/list
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewDubboService:searchAuditFailed:(com.jkqj.zemu.rpc.server.model.SearchRequest):1.0.0"
+
+      - path: /wt/v1/interview/auditing/list
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewDubboService:searchAuditing:(com.jkqj.zemu.rpc.server.model.SearchRequest):1.0.0"
+
+      - path: /wt/v1/interview/passed/list
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewDubboService:searchPassed:(com.jkqj.zemu.rpc.server.model.SearchRequest):1.0.0"
+
+      - path: /wt/v1/interview/failed/list
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewDubboService:searchFailed:(com.jkqj.zemu.rpc.server.model.SearchRequest):1.0.0"
+
+      - path: /wt/v1/interview/invitation/detail
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewDubboService:detailInvitation:(com.jkqj.zemu.rpc.server.model.DetailRequest):1.0.0"
+
+      - path: /wt/v1/interview/detail
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewDubboService:getInterviewDetail:(com.jkqj.zemu.interview.service.invitation.request.BInterviewCommonRequest):1.0.0"
+
+      - path: /wt/v1/interview/getMediaWithSubtitle
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewDubboMediaService:getMediaWithSubtitle:(com.jkqj.zemu.rpc.server.model.interview.InterviewMediaSubtitle):1.0.0"
+
+      - path: /wt/v1/interview/progress/getCountPerStatus
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.admin.rpc.server.DubboInterviewProgressService:getCountPerStatus:(java.lang.Long companyId,java.lang.Long jobId):1.0.0"
+
+      - path: /wt/v1/interview/progress/list
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.admin.rpc.server.DubboInterviewProgressService:list:(com.jkqj.admin.control.params.ProgressListParams):1.0.0"
+
+      - path: /wt/v1/interview/progress/findCompanyByUid
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.admin.rpc.server.DubboInterviewProgressService:findCompanyByUid:():1.0.0"
+
+      - path: /wt/v1/interview/progress/findJobByCompanyId
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.admin.rpc.server.DubboInterviewProgressService:findJobByCompanyId:(java.lang.Long companyId):1.0.0"
+
+      - path: /admin/v1/internal/bvideo/checkCompanyVideoAccess
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.admin.rpc.server.DubboCompanyVideoPermitCheckService:checkCompanyVideoAccess:(com.jkqj.mediacenter.client.context.model.MediaAccessRequest):1.0.0"
+
+      - path: /wt/v1/invitation/generate
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewInitDubboService:generateInvitation:(com.jkqj.zemu.interview.service.invitation.request.GenerateInvitationRequest):1.0.0"
+
+      - path: /wt/v1/invitation/regenerate
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewInitDubboService:regenerateInvitation:(com.jkqj.zemu.interview.service.invitation.request.RegenerateInvitationRequest):1.0.0"
+
+      - path: /wt/v1/invitation/send-sms
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewInitDubboService:sendSms:(com.jkqj.zemu.interview.service.invitation.request.BInterviewCommonRequest):1.0.0"
+
+      - path: /wt/v1/invitation/preview
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewInitDubboService:previewInvitation:(com.jkqj.zemu.interview.service.invitation.request.BInterviewCommonRequest):1.0.0"
+
+      - path: /wt/v1/cv/add
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewCvDubboService:addCompanyCvForInterview:(com.jkqj.zemu.rpc.server.model.interview.CompanyCvAddRequest):1.0.0"
+
+      - path: /wt/v1/cv/delete
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewCvDubboService:deleteCompanyCv:(com.jkqj.zemu.rpc.server.model.interview.CompanyCvDeleteRequest):1.0.0"
+
+      - path: /wt/v1/cv/checkCompanyCv
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewCvDubboService:checkCompanyCv:(com.jkqj.zemu.rpc.server.model.permit.PermitCallbackRequest):1.0.0"
+
+      - path: /wt/v1/attachment/checkAttachment
+        methods:
+          - get
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.zemu.rpc.server.InterviewCvDubboService:checkAttachment:(com.jkqj.zemu.rpc.server.model.permit.PermitCallbackRequest):1.0.0"
+
+      - path: /dc/v1/event/track
+        methods:
+          - post
+        login: false
+        proxyPass: "dubbo://dev:com.jkqj.dc.rpc.EventTrackRpc:track:(com.jkqj.dc.rpc.request.EncodedEventTrackRequest):1.0.0"
+
+      - path: /dc/v1/stat/interview/question-url
+        methods:
+          - get
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.dc.rpc.InterviewStatRpc:questionAction:(com.jkqj.dc.rpc.request.InterviewStatRequest):1.0.0"
+
+      - path: /admin/v1/category/add
+        methods:
+          - post
+        login: true
+        proxyPass: "dubbo://dev:com.jkqj.admin.general.rpc.CategoryRpc:addCategory:(com.jkqj.admin.general.service.vo.AddCategory):1.0.0"
+
+      - path: /**/*
+        methods:
+          - get
+          - post
+        #        description: retrieve login info
+        login: true
+        #        roles:
+        #          - admin
+        #          - editor
+        #        permissions:
+        #          - all:update
+        #          - all:view
+        #          - all:delete
+        passHeaders:
+          - paltform
+          - os
+        traceHeader: trace-id
+        proxyPass: "http://bserver:{request_uri}"
+    #        proxyPass: "dubbo://job.vipserver:prod:com.jkqj.JobService:getJob:1.0.0"
+    upstreams:
+      - id: bserver
+        type: http
+        host: 192.168.110.230
+        port: 8080
+      - id: uc
+        type: http
+        host: 192.168.110.230
+        port: 9090
+
+# prometheus
+management:
+  endpoint:
+    metrics:
+      enabled: false
+    prometheus:
+      enabled: true
+  endpoints:
+    web:
+      base-path: /jkqj_monitor
+      exposure:
+        include: prometheus, health
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+  server:
+    port: 19004

@@ -1,0 +1,166 @@
+dubbo:
+  application:
+    parameters:
+      unicast: false
+  protocol:
+    name: dubbo
+    port: -1
+    threadpool: fixed
+    threads: 30
+    iothreads: 3
+  metadata-report:
+    address: nacos://192.168.0.1:8848
+  registry:
+    protocol: nacos
+    address: 192.168.0.1:8848
+  scan:
+    base-packages: com.jkqj.base.gateway
+  provider:
+    group: ${spring.profiles.active}
+    filter: -generic,custom
+  consumer:
+    group: ${spring.profiles.active}
+    layer: gw
+    check: false
+    timeout: 30000
+    retries: 1
+    async: false
+    actives: 0
+
+nacos:
+  config:
+    server-addr: 192.168.0.1:8848
+
+jkqj:
+  rpc:
+    client:
+      user: http://localhost:20003
+      authorization: http://localhost:20003
+      biz-user: http://localhost:20002
+
+  gateway:
+    nacos:
+      group: ${spring.profiles.active}
+      globalId: f-api-gateway-router-properties.yaml
+      routeTriggerId: DUBBO_GATEWAY_TRIGGER.TEXT
+      routeIdSuffix: _gw_config.yaml
+    passHeaders:
+      - device-id
+      - hardware
+      - os
+      - os-version
+      - location
+      - ip
+      - network-type
+      - timestamp
+      - user-agent
+      - resolution
+      - platform
+      - app-key
+      - app-version
+      - app-vsn
+      - trace-id
+      - token
+
+    rules:
+      - path: /qj/v1/auth/token/login/mobile
+        methods:
+          - post
+        description: login by mobile
+        login: false
+        passHeaders:
+          - paltform
+          - os
+        traceHeader: trace-id
+        proxyPass: "http://uc:/qj/v1/auth/token/login/mobile"
+
+      - path: /demo/ping
+        methods:
+          - get
+          - post
+        login: false
+        proxyPass: "dubbo://:com.jkqj.base.gateway.invoker.demo.DemoService:ping:(java.lang.String name, int age, boolean isMale, [Ljava.lang.String; hobbies):1.0.0"
+
+      - path: /demo/ping1
+        methods:
+          - get
+          - post
+        login: false
+        proxyPass: "dubbo://:com.jkqj.base.gateway.invoker.demo.DemoService:ping1:(com.jkqj.base.gateway.invoker.demo.PingRequest):1.0.0"
+
+      - path: /wt/v1/interview/comment/list
+        methods:
+          - get
+          - post
+        login: false
+        proxyPass: "dubbo://:com.jkqj.zemu.rpc.server.InterviewCommentDubboService:getCommentList:(com.jkqj.zemu.rpc.server.model.interview.GetCommentListRequest):1.0.0"
+
+      - path: /dc/v1/event/track
+        methods:
+          - post
+        login: false
+        proxyPass: "dubbo://qa:com.jkqj.dc.rpc.EventTrackRpc:track:(com.jkqj.dc.rpc.request.EncodedEventTrackRequest):1.0.0"
+
+      - path: /dc/v1/stat/interview/question-url
+        methods:
+          - get
+        login: true
+        proxyPass: "dubbo://qa:com.jkqj.dc.rpc.InterviewStatRpc:questionAction:(com.jkqj.dc.rpc.request.InterviewStatRequest):1.0.0"
+
+      - path: /admin/v1/category/add
+        methods:
+          - post
+        login: true
+        proxyPass: "dubbo://qa:com.jkqj.admin.general.rpc.CategoryRpc:addCategory:(com.jkqj.admin.general.service.vo.AddCategory):1.0.0"
+
+      - path: /qj/v1/robot/verification-code/fetch
+        methods:
+          - post
+        login: false
+        proxyPass: "http://uc:/qj/v1/robot/verification-code/fetch"
+
+      - path: /**/*
+        methods:
+          - get
+          - post
+        login: true
+        passHeaders:
+          - paltform
+          - os
+        traceHeader: trace-id
+        proxyPass: "http://bserver:{request_uri}"
+
+    upstreams:
+      - id: bserver
+        type: http
+        host: localhost
+        port: 20002
+
+      - id: uc
+        type: http
+        host: localhost
+        port: 20003
+
+# prometheus
+management:
+  endpoint:
+    metrics:
+      enabled: false
+    prometheus:
+      enabled: true
+  endpoints:
+    web:
+      base-path: /jkqj_monitor
+      exposure:
+        include: prometheus, health
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+  server:
+    port: 29004
+
+logging:
+  config: classpath:logback-spring-qa.xml

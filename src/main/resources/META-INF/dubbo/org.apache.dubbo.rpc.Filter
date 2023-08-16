@@ -1,0 +1,2 @@
+custom=com.jkqj.base.gateway.invoker.dubbo.CustomGenericFilter
+trace=com.jkqj.base.gateway.invoker.dubbo.TraceConsumerFilter
